@@ -82,7 +82,7 @@
     <storages/>
     <users>
         <user name="root" password="rootpwd" resources="*" />
-    <users/>
+    </users>
     <properties>
         <entry value="false" name="profiler.enabled"/>
         <entry value="/mnt/log" name="storage.wal.path"/>

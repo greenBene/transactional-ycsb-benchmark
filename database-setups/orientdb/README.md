@@ -14,8 +14,8 @@ sudo chown azureadmin -R /mnt/data
 
 wget https://raw.githubusercontent.com/greenBene/transactional-ycsb-benchmark/main/database-setups/orientdb/orientdb-server-config.xml
 wget https://raw.githubusercontent.com/greenBene/transactional-ycsb-benchmark/main/database-setups/orientdb/hazelcast.xml
-cp ./orientdb-server-config.xml ./orientdb-community-3.2.31/config/orientdb-server-config.xml
-cp ./hazelcast.xml ./orientdb-community-3.2.31/config/hazelcast.xml
+mv ./orientdb-server-config.xml ./orientdb-community-3.2.31/config/orientdb-server-config.xml
+mv ./hazelcast.xml ./orientdb-community-3.2.31/config/hazelcast.xml
 
 cd orientdb-community-3.2.31
 ./bin/dserver.sh 
