@@ -17,8 +17,26 @@ sudo chown -R mongodb /mnt/log
 sudo chown -R mongodb /mnt/data
 
 
-wget https://raw.githubusercontent.com/greenBene/transactional-ycsb-benchmark/main/database-setups/mongodb/mongodb.conf
+wget https://raw.githubusercontent.com/greenBene/transactional-ycsb-benchmark/main/database-setups/mongodb/mongod.conf
+
+sudo mv ./mongod.conf /etc/mongo.conf
+```
+
+For each node
+* Add the local ip in `/etc/mongod.conf` to `net.bindIp:`. 
+* Restart the service via `sudo systemctl restart mongod`
 
 
-sudo systemctl restart mongod
+In one node, execute the following to setup the replication set
+```bash
+mongosh <<EOF
+  var cfg = {
+    _id: "rs0",
+    members: [
+        { _id: 0, host: "10.0.2.4" },
+        { _id: 1, host: "10.0.2.5" }
+    ]
+    };
+  rs.initiate(cfg);
+EOF
 ```
