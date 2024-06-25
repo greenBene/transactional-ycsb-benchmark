@@ -5,6 +5,7 @@ For each node:
 # Download FoundationDB client + server
 wget https://github.com/apple/foundationdb/releases/download/6.3.23/foundationdb-clients_6.3.23-1_amd64.deb
 wget https://github.com/apple/foundationdb/releases/download/6.3.23/foundationdb-server_6.3.23-1_amd64.deb
+wget https://raw.githubusercontent.com/greenBene/transactional-ycsb-benchmark/main/database-setups/foundationdb/foundationdb.conf
 sudo dpkg -i foundationdb-clients_6.3.23-1_amd64.deb foundationdb-server_6.3.23-1_amd64.deb
 sudo mkdir -p /mnt/log/foundationdb /mnt/data
 sudo chown -R foundationdb /mnt/log
