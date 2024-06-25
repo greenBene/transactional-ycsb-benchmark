@@ -34,7 +34,7 @@ resource "random_pet" "azurerm_public_ip_name" {
 }
 
 resource "azurerm_public_ip" "public_ip" {
-  count               = var.numer_of_nodes
+  count               = var.numer_of_nodes + 1
   name                = "${random_pet.azurerm_public_ip_name.id}${count.index}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -61,7 +61,7 @@ resource "azurerm_network_security_group" "nsg" {
 
 
 resource "azurerm_network_interface" "ni" {
-  count               = var.numer_of_nodes
+  count               = var.numer_of_nodes + 1
   name                = "acctni${count.index}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -75,19 +75,15 @@ resource "azurerm_network_interface" "ni" {
 }
 
 resource "azurerm_network_interface_security_group_association" "nsg_association" {
-  count                     = var.numer_of_nodes
+  count                     = var.numer_of_nodes + 1
   network_interface_id      = azurerm_network_interface.ni[count.index].id
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
 
-resource "random_pet" "azurerm_linux_virtual_machine_name" {
-  prefix = "vm"
-}
-
-resource "azurerm_linux_virtual_machine" "vm" {
+resource "azurerm_linux_virtual_machine" "vm-database" {
   count                 = var.numer_of_nodes
-  name                  = "${random_pet.azurerm_linux_virtual_machine_name.id}${count.index}"
+  name                  = "database-vm-${count.index}"
   location              = azurerm_resource_group.rg.location
   resource_group_name   = azurerm_resource_group.rg.name
   network_interface_ids = [azurerm_network_interface.ni[count.index].id]
@@ -115,6 +111,42 @@ resource "azurerm_linux_virtual_machine" "vm" {
     caching              = "ReadWrite"
     storage_account_type = "StandardSSD_ZRS"
     name                 = "myosdisk${count.index}"
+  }
+
+  admin_username                  = var.username
+  admin_password                  = var.password
+  disable_password_authentication = false
+}
+
+resource "azurerm_linux_virtual_machine" "vm-execution" {
+  name                  = "execution-vm"
+  location              = azurerm_resource_group.rg.location
+  resource_group_name   = azurerm_resource_group.rg.name
+  network_interface_ids = [azurerm_network_interface.ni[var.numer_of_nodes].id]
+  size                  = "Standard_A2_v2"
+
+  # Uncomment this line to delete the OS disk automatically when deleting the VM
+  # delete_os_disk_on_termination = true
+
+  # Uncomment this line to delete the data disks automatically when deleting the VM
+  # delete_data_disks_on_termination = true
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  admin_ssh_key {
+    username   = var.username
+    public_key = file("~/.ssh/id_rsa.pub")
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "StandardSSD_ZRS"
+    name                 = "myosdisk-exec"
   }
 
   admin_username                  = var.username
