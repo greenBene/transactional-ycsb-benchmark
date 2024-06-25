@@ -18,25 +18,54 @@ sudo chown -R mongodb /mnt/data
 
 
 wget https://raw.githubusercontent.com/greenBene/transactional-ycsb-benchmark/main/database-setups/mongodb/mongod.conf
+wget https://raw.githubusercontent.com/greenBene/transactional-ycsb-benchmark/main/database-setups/mongodb/disable-transparent-huge-pages.service
 
-sudo mv ./mongod.conf /etc/mongo.conf
+
+sudo mv ./mongod.conf /etc/mongod.conf
+sudo mv ./disable-transparent-huge-pages.service /etc/systemd/system/disable-transparent-huge-pages.service
+sudo systemctl daemon-reload
+sudo systemctl start disable-transparent-huge-pages
+sudo systemctl enable disable-transparent-huge-pages
 ```
 
 For each node
-* Add the local ip in `/etc/mongod.conf` to `net.bindIp:`. 
-* Restart the service via `sudo systemctl restart mongod`
+```bash
+sudo nano /etc/mongod.conf # add local IP to net.bindIp: 
+sudo nano /etc/sysctl.conf # add "vm.max_map_count = 262144" to end of file
+sudo sysctl -p
+
+sudo systemctl restart mongod
+```
 
 
-In one node, execute the following to setup the replication set
+In one node, execute the following to setup the replication set. Update the host ips accordingly.
 ```bash
 mongosh <<EOF
   var cfg = {
     _id: "rs0",
     members: [
-        { _id: 0, host: "10.0.2.4" },
+        { _id: 0, host: "10.0.2.6" },
         { _id: 1, host: "10.0.2.5" }
     ]
     };
   rs.initiate(cfg);
 EOF
+```
+
+## Setup YCSB
+
+```bash
+# Preape local YCSB and compile for foundationdb
+git clone https://github.com/greenBene/YCSB.git
+cd ./YCSB
+sudo apt-get update
+sudo apt install -y default-jdk
+sudo apt-get install -y maven
+mvn -e -Psource-run -pl site.ycsb:mongodb-binding -am clean package
+```
+
+## Run YCSB
+```bash
+./bin/ycsb.sh load mongodb -s -P workloads/workloadt -threads 10 -p mongodb.url=mongodb://10.0.2.6:27017/ycsb
+./bin/ycsb.sh run mongodb -s -P workloads/workloadt -threads 10 -p mongodb.url=mongodb://10.0.2.6:27017/ycsb
 ```
