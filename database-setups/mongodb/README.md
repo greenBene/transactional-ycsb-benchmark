@@ -18,10 +18,9 @@ sudo chown -R mongodb /mnt/data
 
 
 wget https://raw.githubusercontent.com/greenBene/transactional-ycsb-benchmark/main/database-setups/mongodb/mongod.conf
-wget https://raw.githubusercontent.com/greenBene/transactional-ycsb-benchmark/main/database-setups/mongodb/disable-transparent-huge-pages.service
-
-
 sudo mv ./mongod.conf /etc/mongod.conf
+
+wget https://raw.githubusercontent.com/greenBene/transactional-ycsb-benchmark/main/database-setups/mongodb/disable-transparent-huge-pages.service
 sudo mv ./disable-transparent-huge-pages.service /etc/systemd/system/disable-transparent-huge-pages.service
 sudo systemctl daemon-reload
 sudo systemctl start disable-transparent-huge-pages
@@ -65,6 +64,8 @@ mvn -e -Psource-run -pl site.ycsb:mongodb-binding -am clean package
 ```
 
 ## Run YCSB
+Exchange IP with IP of primary mongodb instance.
+
 ```bash
 ./bin/ycsb.sh load mongodb -s -P workloads/workloadt -threads 10 -p mongodb.url=mongodb://10.0.2.6:27017/ycsb
 ./bin/ycsb.sh run mongodb -s -P workloads/workloadt -threads 10 -p mongodb.url=mongodb://10.0.2.6:27017/ycsb
