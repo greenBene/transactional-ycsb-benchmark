@@ -3,13 +3,13 @@
 # Setup cluster
 
 ```bash
+sudo apt-get update
 sudo apt-get install gnupg curl
 curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
    sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg \
    --dearmor
 echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
 sudo apt-get update
-
 sudo apt-get install -y mongodb-org=7.0.11 mongodb-org-database=7.0.11 mongodb-org-server=7.0.11 mongodb-mongosh=2.2.10 mongodb-org-mongos=7.0.11 mongodb-org-tools=7.0.11
 
 sudo mkdir -p /mnt/log/mongodb /mnt/data/mongodb
@@ -44,7 +44,7 @@ mongosh <<EOF
     _id: "rs0",
     members: [
         { _id: 0, host: "10.0.2.6" },
-        { _id: 1, host: "10.0.2.5" }
+        { _id: 1, host: "10.0.2.4" }
     ]
     };
   rs.initiate(cfg);
@@ -55,8 +55,8 @@ EOF
 
 ```bash
 # Preape local YCSB and compile for foundationdb
-git clone https://github.com/greenBene/YCSB.git
-cd ./YCSB
+git clone https://github.com/greenBene/Transactional-YCSB.git
+cd ./Transactional-YCSB
 sudo apt-get update
 sudo apt install -y default-jdk
 sudo apt-get install -y maven
@@ -67,6 +67,12 @@ mvn -e -Psource-run -pl site.ycsb:mongodb-binding -am clean package
 Exchange IP with IP of primary mongodb instance.
 
 ```bash
-./bin/ycsb.sh load mongodb -s -P workloads/workloadt -threads 10 -p mongodb.url=mongodb://10.0.2.6:27017/ycsb
-./bin/ycsb.sh run mongodb -s -P workloads/workloadt -threads 10 -p mongodb.url=mongodb://10.0.2.6:27017/ycsb
+# Loading dataset
+./bin/ycsb.sh load mongodb -s -P workloads/workloadt -threads 10 -p mongodb.url=mongodb://10.0.2.6:27017/ycsb > mongodb_load.dat
+
+# Running benchmark
+./bin/ycsb.sh run mongodb -s -P workloads/workloadt -threads 10 -p mongodb.url=mongodb://10.0.2.6:27017/ycsb -p requestdistribution=uniform -p operationcount=300000 -p transactionReadCount=9 -p transactionUpdateCount=1 > mongodb_e1.dat
+./bin/ycsb.sh run mongodb -s -P workloads/workloadt -threads 10 -p mongodb.url=mongodb://10.0.2.6:27017/ycsb -p requestdistribution=zipfian -p operationcount=300000 -p transactionReadCount=9 -p transactionUpdateCount=1 > mongodb_e1.dat
+./bin/ycsb.sh run mongodb -s -P workloads/workloadt -threads 10 -p mongodb.url=mongodb://10.0.2.6:27017/ycsb -p requestdistribution=uniform -p operationcount=30000 -p transactionReadCount=90 -p transactionUpdateCount=10 > mongodb_e1.dat
+./bin/ycsb.sh run mongodb -s -P workloads/workloadt -threads 10 -p mongodb.url=mongodb://10.0.2.6:27017/ycsb -p requestdistribution=zipfian -p operationcount=30000 -p transactionReadCount=90 -p transactionUpdateCount=10 > mongodb_e1.dat
 ```

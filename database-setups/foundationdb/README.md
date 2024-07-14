@@ -42,8 +42,8 @@ wget https://github.com/apple/foundationdb/releases/download/6.3.23/foundationdb
 sudo dpkg -i foundationdb-clients_6.3.23-1_amd64.deb
 
 # Preape local YCSB and compile for foundationdb
-git clone https://github.com/greenBene/YCSB.git
-cd ./YCSB
+git clone https://github.com/greenBene/Transactional-YCSB.git
+cd ./Transactional-YCSB
 sudo apt-get update
 sudo apt install -y default-jdk
 sudo apt-get install -y maven
@@ -58,9 +58,14 @@ scp azureadmin@database-vm-0:/etc/foundationdb/fdb.cluster ./
 
 ```bash
 # Loading dataset
-./bin/ycsb.sh load foundationdb -s -P workloads/workloadt -threads 10
+./bin/ycsb.sh load foundationdb -s -P workloads/workloadt -threads 10 -s > foundationdb_load.dat
 
-# Running benchmark
-./bin/ycsb.sh run foundationdb -s -P workloads/workloadt -threads 10
-# TODO: Add different run configurations
+# Running benchmarks
+./bin/ycsb.sh run foundationdb -s -P workloads/workloadt -threads 10 -p requestdistribution=uniform -p operationcount=300000 -p transactionReadCount=9 -p transactionUpdateCount=1 > foundationdb_e1.dat
+
+./bin/ycsb.sh run foundationdb -s -P workloads/workloadt -threads 10 -p requestdistribution=zipfian -p operationcount=300000 -p transactionReadCount=9 -p transactionUpdateCount=1 > foundationdb_e2.dat
+
+./bin/ycsb.sh run foundationdb -s -P workloads/workloadt -threads 10 -p requestdistribution=uniform -p operationcount=30000 -p transactionReadCount=90 -p transactionUpdateCount=10 > foundationdb_e3.dat
+
+./bin/ycsb.sh run foundationdb -s -P workloads/workloadt -threads 10 -p requestdistribution=zipfian -p operationcount=30000 -p transactionReadCount=90 -p transactionUpdateCount=10 > foundationdb_e4.dat
 ```
